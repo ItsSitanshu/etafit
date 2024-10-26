@@ -21,6 +21,12 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
+import GifLoading from '@/components/GifLoading';
+
+function SetTimeoutAsync(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -31,6 +37,8 @@ export default function HomeScreen() {
   const [pwd, onchangepwd] = useState("");
   const [emailError, setEmailError] = useState("");
   const [pwdError, setPwdError] = useState("");
+
+  const [loading, setLoading] = useState(false);
 
   const rememberMe = (opt: boolean) => {
     onchangeremember(opt);
@@ -49,14 +57,15 @@ export default function HomeScreen() {
       setPwdError("Password is required");
       return;
     }
+
+    setLoading(true);
     
-
-
     try {  
       const retrievedEmail: string | null = await getEmailFromUsrn();
 
       if (!retrievedEmail) {
         setPwdError("Account isn’t registered");
+        setLoading(false);
         return;
       }
       
@@ -67,8 +76,10 @@ export default function HomeScreen() {
       const currentUser = auth.currentUser;
       if (!currentUser) {
         setEmailError("User is not authenticated. Please log in again.");
+        setLoading(false);
         return;
       }
+  
   
       try {
         const userDocRef = doc(store, "users", currentUser.uid);
@@ -76,12 +87,19 @@ export default function HomeScreen() {
   
         if (!docSnap.exists()) {
           await setDoc(userDocRef, {
-            email: email,
+            email: retrievedEmail,
             username: usrname,
             weight: 0,
             height: 0,
             pfp: "https://firebasestorage.googleapis.com/v0/b/eta-fit.appspot.com/o/pfp%2F2dc12e65531b19351001e48868f912ac3101afb8.png?alt=media&token=3352346a-ff43-47f9-921e-9ff674d3b342"
           });
+
+          onchangeusrname("");
+          onchangepwd("");
+
+          router.push("/(tabs)/pprofile");
+        } else {
+          router.push("/(tabs)/pprofile");
         }
       } catch (error) {
         console.error("Error creating user document:", error);
@@ -90,17 +108,17 @@ export default function HomeScreen() {
       const err = e as FirebaseError;
       if (err.code === "auth/wrong-password") {
         setPwdError("Incorrect password. Please try again.");
+        setLoading(false);
       } else if (err.code === "auth/user-not-found") {
         setEmailError("No user found with this email.");
+        setLoading(false);
       } else {
         alert("Login Failed: " + err.message);
+        setLoading(false);
       }
-    }
-  
-    router.push("/(tabs)/pprofile");
-  
-    onchangeusrname("");
-    onchangepwd("");
+    } 
+
+    setLoading(false);
   };
   
   const getEmailFromUsrn = async (): Promise<string | null> => {
@@ -174,7 +192,7 @@ export default function HomeScreen() {
             />
             <Text style={styles.opt2} onPress={() => router.push('/(tabs)/')}>Forgot Password?</Text>
             </View>
-          <RoundEdgeButton title="LOGIN" onPress={loginAccount} />
+          <RoundEdgeButton title="LOGIN" onPress={async () => await loginAccount()} />
         </View>
       </View>
 
@@ -183,7 +201,7 @@ export default function HomeScreen() {
         <Image source={require('@/assets/images/APPLE_LOGIN.png')} style={styles.bottomimg} resizeMode="contain" />
         <Image source={require('@/assets/images/GITHUB_LOGIN.png')} style={styles.bottomimg} resizeMode="contain" />
       </View>
-
+    <GifLoading visible={loading} close={() => {}}/>
     </View>
     </ScrollView>
     </KeyboardAvoidingView>
@@ -192,7 +210,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   page: {
-    flex: 1,
+    height: 100*vh,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',

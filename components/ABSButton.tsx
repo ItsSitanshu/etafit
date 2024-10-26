@@ -37,6 +37,8 @@ const styles = StyleSheet.create({
   actImg: {
     width: 8*vw,
     height: 8*vw,
+    padding: 0,
+    margin: 0
   },
 });
 

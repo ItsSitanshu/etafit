@@ -99,8 +99,14 @@ const ProfilePictureModal: React.FC<ProfilePictureModalProps> = ({ visible, onCl
             )}
             <RoundEdgeButton title='SELECT A NEW IMAGE' onPress={handleImagePick} backgroundColor={Colors.black}/>
           </View>
-          <Button title="Upload" onPress={handleUpload} disabled={!selectedImage} color={Colors.lightAccent} />
-          <Button title="Cancel" onPress={onClose} color={Colors.accent} />
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handleUpload} disabled={!selectedImage} style={styles.button} >
+              <Text style={styles.buttonText}>Upload</Text>  
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onClose} style={styles.button}>
+              <Text style={styles.buttonText}>Cancel</Text>  
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       {loading && <GifLoading visible={loading} close={() => {}} />}
@@ -139,6 +145,23 @@ const styles = StyleSheet.create({
     borderRadius: 20 * vh,
     marginBottom: 10,
   },
+  buttonContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  button: {
+    width: 38*vw,
+    height: 4*vh,
+    borderRadius: 20 * vh,
+    backgroundColor: Colors.lightAccent,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  buttonText: {
+    fontFamily: 'NuintoEBold',
+  }
 });
 
 export default ProfilePictureModal;

@@ -18,6 +18,7 @@ import {
   setDoc,
   doc,
 } from "firebase/firestore";
+import GifLoading from '@/components/GifLoading';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -180,13 +181,14 @@ export default function HomeScreen() {
 
     </View>
     </ScrollView>
+    <GifLoading visible={loading} close={() => {}} />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   page: {
-    flex: 1,
+    height: 100*vh,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -259,7 +261,8 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   form: {
-    marginTop: 15,
+    marginTop: 1.5*vh,
+    marginBottom: 0.5*vh,
     display: 'flex',
     flexDirection: 'column',
   },

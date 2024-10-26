@@ -38,12 +38,13 @@ const styles = StyleSheet.create({
   },
   editTitle: {
     fontFamily: 'Nuinto',
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.lightAccent
   },
   editContent: {
-    fontFamily: 'NuintoEBold',
-    fontSize: 17,
+    fontFamily: 'Nuinto',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: Colors.white
   },
   editCaret: {

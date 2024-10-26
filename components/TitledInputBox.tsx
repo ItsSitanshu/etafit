@@ -4,11 +4,11 @@ import { vw, vh } from '@/constants/Window';
 import { Colors } from '@/constants/Colors';
 
 interface TitledInputBoxProps {
-    title: string;
-    placeholder: string;
-    value: string;
-    secureTextEntry?: boolean;
-    onChangeText?: ((text: string) => void);
+  title: string;
+  placeholder: string;
+  value: string;
+  secureTextEntry?: boolean;
+  onChangeText?: ((text: string) => void);
 }
 
 
@@ -31,42 +31,42 @@ const TitledInputBox: React.FC<TitledInputBoxProps> = ({ title, placeholder, val
 
 const styles = StyleSheet.create({
   container: {
-      marginBottom: vh * 2,
+    marginBottom: vh * 2,
   },
   title: {
-      padding: 0,
+    padding: 0,
 
-      fontFamily: 'NuintoIEBold',
-      position: 'absolute',
-      zIndex: 1,
-      backgroundColor: Colors.accent + "FF",
-      
-      top: -1.01 * vh,
-      left: 5 * vw,
-      paddingLeft: 3,
-      paddingRight: 7,
-      height: 1.5 * vh,
+    fontFamily: 'NuintoIEBold',
+    position: 'absolute',
+    zIndex: 1,
+    backgroundColor: Colors.accent + "FF",
+    
+    top: -1.01 * vh,
+    left: 5 * vw,
+    paddingLeft: 3,
+    paddingRight: 7,
+    height: 2 * vh,
 
-      textAlign: 'center',
-      fontSize: 1.5 * vh,
-      color: Colors.white,
+    textAlign: 'center',
+    fontSize: 1.5 * vh,
+    color: Colors.white,
   },
   input: {
-      width: 90 * vw,
-      height: 6 * vh, 
-      
-      backgroundColor: 'transparent',
-      paddingLeft: 4*vw,
-      textAlign: 'left',
+    width: 90 * vw,
+    height: 6.5 * vh, 
+    
+    backgroundColor: 'transparent',
+    paddingLeft: 4*vw,
+    textAlign: 'left',
 
-      fontSize: 16,      
-      fontFamily: 'Nuinto',
-      fontWeight: 'light',
-      color: Colors.white,
+    fontSize: 16,      
+    fontFamily: 'Nuinto',
+    fontWeight: 'light',
+    color: Colors.white,
 
-      borderWidth: 1,
-      borderRadius: 20 ,
-      borderColor: Colors.white + 'BB',
+    borderWidth: 1,
+    borderRadius: 20 ,
+    borderColor: Colors.white + 'BB',
   },
 });
 

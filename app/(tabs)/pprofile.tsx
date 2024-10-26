@@ -19,7 +19,6 @@ import ProfilePictureModal from '@/components/ProfilePictureModal';
 import GifLoading from '@/components/GifLoading';
 import ScrollPicker from "react-native-wheel-scrollview-picker";
 import FirstTimeForm from '@/components/FirstTimeForm';
-import {Calendar, LocaleConfig} from 'react-native-calendars';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -92,7 +91,7 @@ export default function HomeScreen() {
               age: data.age?.toString() || '',
               sex: data.sex?.toString() || '',
               activity: data.activity?.toString() || '',
-              goals: data.goals || '',
+              goals: data.goals?.toString() || '',
               username: data.username?.toString() || '',
               email: data.email?.toString() || '',
               followers: data.followers?.toString() || '0',
@@ -121,7 +120,18 @@ export default function HomeScreen() {
             setEditActivity(data.activity || '');
             setEditGoals(data.goals || '');
 
-            setFirstForm([data.first, data.middle, data.last, data.weight, data.height, data.age, data.sex, data.activity, data.goals].every((field) => field.trim() === ""));
+            setFirstForm([
+              data.first, 
+              data.middle, 
+              data.last, 
+              data.weight, 
+              data.height, 
+              data.age, 
+              data.sex, 
+              data.activity, 
+              data.goals
+            ].every((field) => (field || "").toString().trim() === ""));
+            
           });
         } else {
           console.log("No matching user document found for email:", currentUser.email);
@@ -215,7 +225,7 @@ export default function HomeScreen() {
       </View>
       <ABSButton onPress={() => setEditing(true)} src={require('@/assets/images/edit.png')}/>
       <GifLoading visible={loading} close={() => {setLoading(false)}} />
-      <FirstTimeForm userData={userData} visible={firstForm} onClose={() => setFirstForm(false)}/>
+      <FirstTimeForm userData={userData} visible={firstForm} onClose={() => setFirstForm(false)} fetchUser={fetchUser}/>
     </View>
     ) : userData && isEditing ? (
     <View style={styles.page}>
@@ -240,7 +250,7 @@ export default function HomeScreen() {
       <EditPop title='Age' current={`${editAge}`} onPress={() => { setMainSave(false); setAgeModalVisible(true); }} />
       <EditPop title='Sex' current={`${editSex}`} onPress={() => { setMainSave(false); setSexModalVisible(true); }} />
       <EditPop title='Activity Level' current={`${editActivity}`} onPress={() => { setMainSave(false); setActivityModalVisible(true); }} />
-      <EditPop title='Goals' current={`${editGoals}`} onPress={() => { setMainSave(false); setGoalsModalVisible(true); }} />
+      <EditPop title='Goals' current={``} onPress={() => { setMainSave(false); setGoalsModalVisible(true); }} />
       </View>
       <EditPopModal 
         title='Full Name' 
@@ -300,7 +310,7 @@ export default function HomeScreen() {
         dataSource={WEIGHT}
         selectedIndex={Math.round(Number(editWeightD)) - 1}
         renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => (
-          <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 22 : 16}}>
+          <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 20 : 16}}>
             {data}
           </Text>
         )}
@@ -318,26 +328,26 @@ export default function HomeScreen() {
         <Text style={styles.decimal}>{'\u2B24'}</Text>
         
         <View style={{ width: 30*vw, height: 40*vh }}>
-        <ScrollPicker
-          dataSource={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
-          selectedIndex={editWeightDec}
-          renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => {
-            return (
-              <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 22 : 16}}>
-                {data}
-              </Text>
-            );
-          }}
-          onValueChange={(value: any, index: number) => {
-            setEditWeightDec((Number(value) / 10)); 
-          }}
-          wrapperHeight={vh * 40}
-          wrapperBackground={Colors.bg}
-          itemHeight={(vh * 40) / 7}
-          highlightColor={Colors.accent}
-          highlightBorderWidth={2}
-        />
-      </View>
+          <ScrollPicker
+            dataSource={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}
+            selectedIndex={editWeightDec}
+            renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => {
+              return (
+                <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 20 : 16}}>
+                  {data}
+                </Text>
+              );
+            }}
+            onValueChange={(value: any, index: number) => {
+              setEditWeightDec((Number(value) / 10)); 
+            }}
+            wrapperHeight={vh * 40}
+            wrapperBackground={Colors.bg}
+            itemHeight={(vh * 40) / 7}
+            highlightColor={Colors.accent}
+            highlightBorderWidth={2}
+          />
+        </View>
       <Text style={styles.result}>{editWeightD + '.' + editWeightDec}</Text>
 
       </View>
@@ -355,7 +365,7 @@ export default function HomeScreen() {
         dataSource={HEIGHT}
         selectedIndex={Number(editHeight) - 1}
         renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => (
-          <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 22 : 16}}>
+          <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 20 : 16}}>
             {data}
           </Text>
         )}
@@ -369,7 +379,6 @@ export default function HomeScreen() {
         highlightBorderWidth={2}
         />
         </View>
-
         </View>
       </EditPopModal>
       <EditPopModal 
@@ -385,7 +394,7 @@ export default function HomeScreen() {
               dataSource={['Male', 'Female']}
               selectedIndex={editSex === 'Male' ? 0 : editSex === 'Female' ? 1 : 2}
               renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => (
-                <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 22 : 16}}>
+                <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 20 : 16}}>
                   {data}
                 </Text>
               )}
@@ -419,7 +428,7 @@ export default function HomeScreen() {
                 editActivity === 'Super active' ? 4 : -1 
               }
               renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => (
-                <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 22 : 16}}>
+                <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 20 : 16}}>
                   {data}
                 </Text>
               )}
@@ -435,38 +444,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </EditPopModal>
-
-
-      {/* <EditPopModal 
-        title='Age' 
-        visible={ageModalVisible} 
-        close={closeAgeModal} 
-        ABSPress={() => { setAgeModalVisible(false); setMainSave(true); }} 
-      >
-        <View style={{alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row'}}>
-        <View style={{width: 80*vw, height: 40*vh}}>
-        <ScrollPicker
-        dataSource={AGE}
-        selectedIndex={Number(editAge) - 1}
-        renderItem={(data: any, index: number, isSelected: boolean): JSX.Element => (
-          <Text style={{ fontWeight: isSelected ? 'bold' : 'normal', color: Colors.white, fontFamily: isSelected ? 'NuintoEBold' : 'Nuinto', fontSize: isSelected ? 22 : 16}}>
-            {data}
-          </Text>
-        )}
-        onValueChange={(value: any, index: number) => {
-          setEditAge(value[0]);
-        }}
-        wrapperHeight={vh * 40}
-        wrapperBackground={Colors.bg}
-        itemHeight={(vh * 40) / 7}
-        highlightColor={Colors.primary}
-        highlightBorderWidth={2}
-        />
-        </View>
-
-        </View>
-      </EditPopModal> */}
-      <FirstTimeForm userData={userData} visible={firstForm} onClose={() => setFirstForm(false)}/>
+      <FirstTimeForm userData={userData} visible={firstForm} onClose={() => setFirstForm(false)} fetchUser={fetchUser}/>
       <ProfilePictureModal
         visible={pfpModalVisible}
         onClose={closePfpModal}
