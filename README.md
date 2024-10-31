@@ -2,7 +2,7 @@
   <img src=".github/logo.png" alt="EtaFit Logo" width="200" />
 </div>
 
-<h1 align="center">EtaFit  An open-source fitness app</h1>
+<h1 align="center"><a href="https://eta-fit.web.app">EtaFit</a>: Fitness Simplified</h1>
 
 
 ### Requirements
@@ -18,4 +18,4 @@ git clone https://github.com/yourusername/etafit.git
 cd etafit
 npm i
 npx expo start # npm run start
-``
+```
