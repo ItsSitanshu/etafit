@@ -3,14 +3,16 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken'); 
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const cors = require('cors');
+
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465, 
   secure: true,
   auth: {
-    user: process.env.OFFICIAL_MAIL, 
-    pass: process.env.OFFICIAL_MAIL_TOKEN 
+    user: process.env.SMTP_MAIL, 
+    pass: process.env.SMTP_TOKEN 
   }
 });
 
@@ -18,13 +20,14 @@ const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const JWT_ACCESS_SECRET = process.env.JWT_SECRET; 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 app.use(express.json());
+app.use(cors());
 
 function verifyToken(req, res, next) {
   const token = req.headers['authorization']?.split(' ')[1];
@@ -114,102 +117,121 @@ function generateTokens(user) {
 }
 
 app.post('/api/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, email, password } = req.body;
 
-  const { data: existingUser, error: userError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('reg_med->>email', email)
-    .single();
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must be at least 3 characters long.' });
+  }
+  
+  if (!validateEmail(email)) {
+    return res.status(400).json({ error: 'Invalid email format.' });
+  }
 
-  if (existingUser) {
-    return res.status(400).json({ error: 'Email already exists' });
+  if (!validatePasswordStrength(password)) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters long and contain a number.' });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const verificationToken = jwt.sign(
-    { email: email }, 
-    process.env.JWT_VERIFY_SECRET, 
-    { expiresIn: '12h' }
-  );
+  try {
+    const { data: existingUser, error: existingUserError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('reg_med->>email', email)
+      .single();
 
-  const { data, error } = await supabase
-    .from('users')
-    .insert([{
-      type: 1, 
-      reg_med: { "email": email },
-      password: hashedPassword,
-      created_at: new Date(),
-    }]);
-
-  if (error) {
-    return res.status(500).json({ error: 'Error registering user', info: error });
-  }
-
-  const verifyEmail = {
-    from: "EtaFit HQ.", 
-    to: email, 
-    subject: 'Verify your registration to EtaFit',
-    text: `Hello,
-  
-    Please verify your email address to complete your registration to EtaFit. Click the link below:
-    https://localhost:3000/verify-email?token=${verificationToken}
-    
-    If you did not register, please ignore this email.`,
-    html: `
-    <table role="presentation" style="width: 100%; padding: 20px; border-spacing: 0;">
-    <tr>
-      <td align="center" valign="middle">
-        <table role="presentation" style="width: 65%; max-width: 500px; background-color: #0F0B15; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);">
-          <tr>
-          <td align="center">
-              <img src="https://eta-fit.web.app/assets/logo-kOhDhFXS.png" alt="EtaFit Logo" style="width: 150px; height: auto; display: block; margin: 0 auto;">
-          </td>
-          </tr>
-          <tr>
-          <td align="center">
-            <h2 style="color: #FFF; font-weight: bold;">Welcome to EtaFit!</h2>
-          </td>
-          </tr>
-          <tr>
-          <td align="center">
-            <p style="color: #FFF;">Thank you for registering. Please verify your email address.</p>
-          </td>
-          </tr>
-          <tr>
-          <td align="center">
-            <a href="https://localhost:3000/verify-email?token=${verificationToken}" style="display: inline-block; padding: 12px 25px; font-size: 16px; font-weight: bold; color: white; background-color: #00DFA2; text-decoration: none; border-radius: 25px;">
-              Verify Email
-            </a>
-          </td>
-          </tr>
-          <tr>
-          <td align="center">
-            <p style="color: #FFF;">If you did not register for EtaFit, you can safely ignore this email.</p>
-            <p style="font-size: 14px; color: #BBB;">This link will expire in 24 hours.</p>
-            <p style="color: #FFF; padding: 0; margin: 0;">Best regards,</p>
-            <p style="color: #FFF; font-weight: bold; margin: 0; padding: 0;">The EtaFit Team</p>
-          </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    </table>
-    `,
-  };
-
-  transporter.sendMail(verifyEmail, (error, info) => {
-    if (error) {
-      return res.status(500).json({ error: 'Error sending verification email', info: error });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists.', existingUser, existingUserError });
     }
-  });
 
-  return res.status(201).json({
-    message: 'User created successfully. Please verify your email.',
-    user: data,
-  });
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ username, reg_med: {'email': email}, password: hashedPassword }]);
+
+    if (error) {
+      return res.status(500).json({ error: 'Error creating user.', error });
+    }
+
+    const verificationToken = jwt.sign(
+      { email: email }, 
+      JWT_ACCESS_SECRET, 
+      { expiresIn: '1h' } 
+    );
+
+    const verifyEmail = {
+      from: "EtaFit HQ.", 
+      to: email, 
+      subject: 'Verify your registration to EtaFit',
+      text: `Hello,
+    
+      Please verify your email address to complete your registration to EtaFit. Click the link below:
+      https://localhost:${port}/verify-email?token=${verificationToken}
+      
+      If you did not register, please ignore this email.`,
+      html: `
+      <table role="presentation" style="width: 100%; padding: 20px; border-spacing: 0;">
+      <tr>
+        <td align="center" valign="middle">
+          <table role="presentation" style="width: 65%; max-width: 500px; background-color: #0F0B15; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);">
+            <tr>
+            <td align="center">
+                <img src="https://eta-fit.web.app/assets/logo-kOhDhFXS.png" alt="EtaFit Logo" style="width: 150px; height: auto; display: block; margin: 0 auto;">
+            </td>
+            </tr>
+            <tr>
+            <td align="center">
+              <h2 style="color: #FFF; font-weight: bold;">Welcome to EtaFit!</h2>
+            </td>
+            </tr>
+            <tr>
+            <td align="center">
+              <p style="color: #FFF;">Thank you for registering. Please verify your email address.</p>
+            </td>
+            </tr>
+            <tr>
+            <td align="center">
+              <a href="https://localhost:3000/verify-email?token=${verificationToken}" style="display: inline-block; padding: 12px 25px; font-size: 16px; font-weight: bold; color: white; background-color: #00DFA2; text-decoration: none; border-radius: 25px;">
+                Verify Email
+              </a>
+            </td>
+            </tr>
+            <tr>
+            <td align="center">
+              <p style="color: #FFF;">If you did not register for EtaFit, you can safely ignore this email.</p>
+              <p style="font-size: 14px; color: #BBB;">This link will expire in 24 hours.</p>
+              <p style="color: #FFF; padding: 0; margin: 0;">Best regards,</p>
+              <p style="color: #FFF; font-weight: bold; margin: 0; padding: 0;">The EtaFit Team</p>
+            </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      </table>
+      `,
+    };
+  
+    transporter.sendMail(verifyEmail, (error, info) => {
+      if (error) {
+        return res.status(500).json({ error: 'Error sending verification email', info: error });
+      }
+    });
+
+    res.status(201).json({ message: 'User registered successfully. Please check your email for verification.' });
+  } catch (error) {
+    console.error('Error during registration:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validatePasswordStrength(password) {
+  const passwordStrengthRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  return passwordStrengthRegex.test(password);
+}
 
 
 app.get('/verify-email', async (req, res) => {
@@ -267,7 +289,7 @@ app.get('/api/protected', verifyToken, async (req, res) => {
   res.json(data);
 });
 
-const server = app.listen(port, () => {
+const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 

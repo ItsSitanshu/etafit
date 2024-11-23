@@ -7,17 +7,9 @@ import Logo from '@/components/Logo';
 import TitledInputBox from '@/components/TitledInputBox';
 import RoundEdgeButton from '@/components/RoundEdgeButton';
 
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { auth, store } from "@/hooks/useFirebase";
-import { FirebaseError } from "firebase/app";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  setDoc,
-  doc,
-} from "firebase/firestore";
+import { API_URL } from 'react-native-dotenv';
+
+
 import GifLoading from '@/components/GifLoading';
 
 export default function HomeScreen() {
@@ -72,54 +64,41 @@ export default function HomeScreen() {
     }
   };
 
-  const createUnAuth = async (email: string, usrname: string) => {
-    try {
-      const usersRef = collection(store, "unauth");
-      const emailQuery = query(usersRef, where("email", "==", email));
-      const querySnapshot = await getDocs(emailQuery);
-
-      if (querySnapshot.empty) {
-        const newUserDocRef = doc(usersRef, email);
-        await setDoc(newUserDocRef, {
-          email: email,
-          username: usrname,
-        });
-      } else {
-        console.log(
-          "A user document with this email already exists:",
-          querySnapshot.docs[0].data()
-        );
-      }
-    } catch (error) {
-      console.error("Error creating user document:", error);
-    }
-  };
-
   const registerAccount = async () => {
-    if (pwdError != "" || emailError != "" || usrnameError != "") {
+    if (pwdError !== "" || emailError !== "" || usrnameError !== "") {
       console.log("ERROR REGISTERING!" + emailError + pwdError + usrnameError);
       return;
     }
-
+  
     setLoading(true);
+  
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, pwd);
-      const user = userCredential.user;
-      await sendEmailVerification(user);
-    } catch (e: any) {
-      const err = e as FirebaseError;
-      onchangeusrname("");
-      onchangeemail("");
-      onchangepwd("");
-      alert("Registration Failed: " + err.message);
+      const response = await fetch(`${API_URL}api/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          username: usrname,
+          password: pwd,
+        }),
+      });
+  
+      if (response.ok) {
+        console.log('User registration data sent to server successfully');
+      } else {
+        const errorData = await response.json(); 
+        console.error('Failed to send registration data to server:', response.statusText, errorData);
+      }
+    } catch (error) {
+      console.error('Error during fetch:', error); 
     } finally {
       setLoading(false);
-      createUnAuth(email, usrname);
-      onchangeusrname("");
-      onchangeemail("");
-      onchangepwd("");
     }
   };
+  
+  
 
   return (
     <KeyboardAvoidingView
