@@ -14,7 +14,9 @@
 ### Running Locally
 
 ```bash
-git clone https://github.com/yourusername/etafit.git
+# You will need a https://supabase.com/ account and a registered project to run the server side code
+
+git clone https://github.com/ItsSitanshu/etafit.git
 cd etafit
 npm i
 npx expo start # npm run start

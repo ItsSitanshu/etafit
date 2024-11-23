@@ -97,9 +97,9 @@ export default function HomeScreen() {
           onchangeusrname("");
           onchangepwd("");
 
-          router.push("/(tabs)/pprofile");
+          router.push("/(tabs)/");
         } else {
-          router.push("/(tabs)/pprofile");
+          router.push("/(tabs)/");
         }
       } catch (error) {
         console.error("Error creating user document:", error);
