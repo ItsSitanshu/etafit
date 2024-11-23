@@ -2,7 +2,7 @@
 
 cd server && nohup nodemon server.js > server.log 2>&1 &
 
-cd ../shishu && nohup npm run start > client.log 2>&1 &
+cd .. && nohup npm run start > client.log 2>&1 &
 
 SERVER_PID=$!
 CLIENT_PID=$!
