@@ -24,7 +24,9 @@ const port = 8080;
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 const JWT_ACCESS_SECRET = process.env.JWT_SECRET; 
+const JWT_VERIFY_SECRET = process.env.JWT_VERIFY_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const API_URL = process.env.API_URL;
 
 app.use(express.json());
 app.use(cors());
@@ -144,20 +146,23 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ error: 'User already exists.', existingUser, existingUserError });
     }
 
+    const VSC = JWT_VERIFY_SECRET; 
+
+    const verificationToken = jwt.sign(
+      { email: email }, 
+      VSC, 
+      { expiresIn: '1h' } 
+    );
+
     const { data, error } = await supabase
-      .from('users')
-      .insert([{ username, reg_med: {'email': email}, password: hashedPassword }]);
+    .from('users')
+    .insert([{ username, reg_med: {'email': email}, password: hashedPassword, is_verified: false, verif_token: verificationToken}]);
 
     if (error) {
       return res.status(500).json({ error: 'Error creating user.', error });
     }
 
-    const verificationToken = jwt.sign(
-      { email: email }, 
-      JWT_ACCESS_SECRET, 
-      { expiresIn: '1h' } 
-    );
-
+    
     const verifyEmail = {
       from: "EtaFit HQ.", 
       to: email, 
@@ -165,7 +170,7 @@ app.post('/api/register', async (req, res) => {
       text: `Hello,
     
       Please verify your email address to complete your registration to EtaFit. Click the link below:
-      https://localhost:${port}/verify-email?token=${verificationToken}
+      ${API_URL}/verify-email?token=${verificationToken}
       
       If you did not register, please ignore this email.`,
       html: `
@@ -190,7 +195,7 @@ app.post('/api/register', async (req, res) => {
             </tr>
             <tr>
             <td align="center">
-              <a href="https://localhost:3000/verify-email?token=${verificationToken}" style="display: inline-block; padding: 12px 25px; font-size: 16px; font-weight: bold; color: white; background-color: #00DFA2; text-decoration: none; border-radius: 25px;">
+              <a href="${API_URL}/verify-email?token=${verificationToken}" style="display: inline-block; padding: 12px 25px; font-size: 16px; font-weight: bold; color: white; background-color: #00DFA2; text-decoration: none; border-radius: 25px;">
                 Verify Email
               </a>
             </td>
@@ -241,9 +246,11 @@ app.get('/verify-email', async (req, res) => {
     return res.status(400).json({ message: 'Verification token is required' });
   }
 
-  jwt.verify(token, process.env.JWT_VERIFY_SECRET, async (err, decoded) => {
+  const VSC = JWT_VERIFY_SECRET; 
+
+  jwt.verify(token, VSC, async (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token' });
+      return res.status(403).json({ message: 'Invalid or expired token', err: err });
     }
 
     const email = decoded.email;

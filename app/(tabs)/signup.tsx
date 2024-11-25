@@ -7,8 +7,7 @@ import Logo from '@/components/Logo';
 import TitledInputBox from '@/components/TitledInputBox';
 import RoundEdgeButton from '@/components/RoundEdgeButton';
 
-import { API_URL } from 'react-native-dotenv';
-
+import { API_URL }from 'react-native-dotenv';
 
 import GifLoading from '@/components/GifLoading';
 
@@ -71,9 +70,12 @@ export default function HomeScreen() {
     }
   
     setLoading(true);
-  
+
+    const API = API_URL as string;
+    console.log(API)
+    
     try {
-      const response = await fetch(`${API_URL}api/register`, {
+      const response = await fetch(`${API}/api/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
