@@ -9,19 +9,12 @@ import TitledInputBox from '@/components/TitledInputBox';
 import RoundEdgeButton from '@/components/RoundEdgeButton';
 
 import BouncyCheckbox from "react-native-bouncy-checkbox";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, store } from "@/hooks/useFirebase";
-import { FirebaseError } from "firebase/app";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
 import GifLoading from '@/components/GifLoading';
+
+import Cookies from '@react-native-cookies/cookies';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL }from 'react-native-dotenv';
+
 
 function SetTimeoutAsync(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -32,7 +25,6 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const [usrname, onchangeusrname] = useState<string>("");
-  const [email, onchangeemail] = useState("");
   const [remember, onchangeremember] = useState<boolean>(false);
   const [pwd, onchangepwd] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -43,6 +35,7 @@ export default function HomeScreen() {
   const rememberMe = (opt: boolean) => {
     onchangeremember(opt);
   };
+
 
   const loginAccount = async () => {
     setEmailError("");
@@ -57,87 +50,42 @@ export default function HomeScreen() {
       setPwdError("Password is required");
       return;
     }
-
+  
     setLoading(true);
-    
-    try {  
-      const retrievedEmail: string | null = await getEmailFromUsrn();
-
-      if (!retrievedEmail) {
-        setPwdError("Account isn’t registered");
-        setLoading(false);
-        return;
-      }
-      
-      onchangeemail(retrievedEmail);
-
-      await signInWithEmailAndPassword(auth, retrievedEmail, pwd);
+    const API = API_URL as string;
+    console.log(API);
   
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        setEmailError("User is not authenticated. Please log in again.");
-        setLoading(false);
-        return;
-      }
-  
-  
-      try {
-        const userDocRef = doc(store, "users", currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
-  
-        if (!docSnap.exists()) {
-          await setDoc(userDocRef, {
-            email: retrievedEmail,
-            username: usrname,
-            weight: 0,
-            height: 0,
-            pfp: "https://firebasestorage.googleapis.com/v0/b/eta-fit.appspot.com/o/pfp%2F2dc12e65531b19351001e48868f912ac3101afb8.png?alt=media&token=3352346a-ff43-47f9-921e-9ff674d3b342"
-          });
-
-          onchangeusrname("");
-          onchangepwd("");
-
-          router.push("/(tabs)/");
-        } else {
-          router.push("/(tabs)/");
-        }
-      } catch (error) {
-        console.error("Error creating user document:", error);
-      }
-    } catch (e: any) {
-      const err = e as FirebaseError;
-      if (err.code === "auth/wrong-password") {
-        setPwdError("Incorrect password. Please try again.");
-        setLoading(false);
-      } else if (err.code === "auth/user-not-found") {
-        setEmailError("No user found with this email.");
-        setLoading(false);
-      } else {
-        alert("Login Failed: " + err.message);
-        setLoading(false);
-      }
-    } 
-
-    setLoading(false);
-  };
-  
-  const getEmailFromUsrn = async (): Promise<string | null> => {
     try {
-      const usersRef = collection(store, "unauth");
-      const emailQuery = query(usersRef, where("username", "==", usrname));
-      const querySnapshot = await getDocs(emailQuery);
+      const response = await fetch(`${API}/api/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          password: pwd,
+          username: usrname,
+        }),
+      });
   
-      if (querySnapshot.empty) {
-        setEmailError("No user found with this username.");
-        return null;
+      if (response.ok) {
+        const responseData = await response.json();
+        const accessToken = responseData.accessToken;
+  
+        await AsyncStorage.setItem('accessToken', accessToken);
+        
+        router.push('/(tabs)/pprofile');
       } else {
-        return querySnapshot.docs[0].data().email;
+        const errorData = await response.json();
+        setEmailError('Invalid credentials');
       }
     } catch (error) {
-      console.error("Error retrieving user document:", error);
-      return null;
+      setEmailError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  };  
+  };
+  
   
 
   return (

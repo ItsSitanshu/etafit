@@ -29,11 +29,16 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const API_URL = process.env.API_URL;
 
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({
+  origin: API_URL,
+  credentials: true,
+}));
+
 
 function verifyToken(req, res, next) {
   const token = req.headers['authorization']?.split(' ')[1];
-  
+
   if (!token) {
     return res.status(401).json({ message: 'Token is required' });
   }
@@ -47,35 +52,35 @@ function verifyToken(req, res, next) {
   });
 }
 
-app.post('/api/refresh-token', (req, res) => {
+app.post('/api/refresh-token', async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    return res.status(401).json({ message: 'No refresh token provided' });
+    return res.status(401).json({ error: 'No refresh token provided' });
   }
 
-  jwt.verify(refreshToken, JWT_REFRESH_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid or expired refresh token' });
-    }
+  try {
+    const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
 
-    const accessToken = jwt.sign(
-      { userId: decoded.userId, type: decoded.type }, 
-      JWT_ACCESS_SECRET, 
+    const newAccessToken = jwt.sign(
+      { userId: payload.userId, type: payload.type },
+      JWT_ACCESS_SECRET,
       { expiresIn: '1h' }
     );
 
-    res.json({ accessToken });
-  });
+    return res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid refresh token' });
+  }
 });
 
 app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
-    .eq('reg_med->>email', email)
+    .eq('username', username)
     .single();
 
   if (error || !user) {
@@ -98,6 +103,12 @@ app.post('/api/login', async (req, res) => {
 
   return res.status(200).json({ accessToken });
 });
+
+app.post('/api/logout', (req, res) => {
+  res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+  return res.status(200).json({ message: 'Logged out' });
+});
+
 
 function generateTokens(user) {
   const accessTokenExpiry = '1h';
