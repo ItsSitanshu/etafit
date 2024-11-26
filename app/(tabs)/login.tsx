@@ -20,15 +20,13 @@ function SetTimeoutAsync(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
 export default function HomeScreen() {
   const router = useRouter();
 
-  const [usrname, onchangeusrname] = useState<string>("");
+  const [Username, SetUsername] = useState<string>("");
   const [remember, onchangeremember] = useState<boolean>(false);
-  const [pwd, onchangepwd] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [pwdError, setPwdError] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -38,16 +36,15 @@ export default function HomeScreen() {
 
 
   const loginAccount = async () => {
-    setEmailError("");
-    setPwdError("");
+    setError("");
   
-    if (!usrname) {
-      setEmailError("Username is required");
+    if (!Username) {
+      setError("Username is required");
       return;
     }
   
-    if (!pwd) {
-      setPwdError("Password is required");
+    if (!password) {
+      setError("Password is required");
       return;
     }
   
@@ -63,8 +60,8 @@ export default function HomeScreen() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          password: pwd,
-          username: usrname,
+          password: password,
+          username: Username,
         }),
       });
   
@@ -74,13 +71,13 @@ export default function HomeScreen() {
   
         await AsyncStorage.setItem('accessToken', accessToken);
         
-        router.push('/(tabs)/pprofile');
+        router.push('/(tabs)/');
       } else {
         const errorData = await response.json();
-        setEmailError('Invalid credentials');
+        setError('Invalid credentials');
       }
     } catch (error) {
-      setEmailError('Something went wrong. Please try again.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -106,24 +103,22 @@ export default function HomeScreen() {
           <Text style={styles.opt}>
             Dont have an acoount? <Text style={styles.opt2} onPress={() => router.push('/(tabs)/signup')}>Register</Text>
           </Text>      
-          { emailError ? (
-            <Text style={styles.errorText}>{emailError}</Text>
-          ) : pwdError ? (
-            <Text style={styles.errorText}>{pwdError}</Text>
-          ) : null}          
+          { error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : <Text> </Text>}          
           <View style={styles.form}>
             <TitledInputBox
               title="Username"
               placeholder="eg. stronguy918"
-              value={usrname}
-              onChangeText={(buf: string) => {onchangeusrname(buf)}}
+              value={Username}
+              onChangeText={(buf: string) => {SetUsername(buf)}}
             />
             <TitledInputBox
               title="Password"
               placeholder="eg. iamsuperstrong@3121"
               secureTextEntry={true}
-              value={pwd}
-              onChangeText={(buf: string) => {onchangepwd(buf)}}
+              value={password}
+              onChangeText={(buf: string) => {setPassword(buf)}}
             />
           </View>
           <View style={styles.remember}>

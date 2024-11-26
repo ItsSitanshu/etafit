@@ -14,5 +14,5 @@ web-build/
 .DS_Store
 
 expo-env.d.ts
-hooks/useFirebase.ts
 .env
+package-lock.json

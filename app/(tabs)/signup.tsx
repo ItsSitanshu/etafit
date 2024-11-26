@@ -14,13 +14,11 @@ import GifLoading from '@/components/GifLoading';
 export default function HomeScreen() {
   const router = useRouter();
 
-  const [usrname, onchangeusrname] = useState('');
+  const [Username, SetUsername] = useState('');
   const [email, onchangeemail] = useState('');
-  const [pwd, onchangepwd] = useState('');
+  const [password, setPassword] = useState('');
 
-  const [usrnameError, setusrnameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [pwdError, setPwdError] = useState("");
+  const [error, setError] = useState("");
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -30,44 +28,41 @@ export default function HomeScreen() {
   };
 
   const validatePasswordStrength = (password: string) => {
-    const passwordStrengthRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    const passwordStrengthRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^\w\s])[A-Za-z\d\W]{8,}$/;
     return passwordStrengthRegex.test(password);
   };
 
   const handleEmailChange = (buf: string) => {
     onchangeemail(buf);
     if (!validateEmail(buf)) {
-      setEmailError("Invalid email address");
+      setError("Invalid email address");
     } else {
-      setEmailError("");
+      setError("");
     }
   };
 
   const handlePasswordChange = (buf: string) => {
-    onchangepwd(buf);
+    setPassword(buf);
     if (!validatePasswordStrength(buf)) {
-      setPwdError(
+      setError(
         "Password must be at least 8 characters long, and include a number."
       );
     } else {
-      setPwdError("");
+      setError("");
     }
   };
 
   const handleUsernameChange = (buf: string) => {
-    onchangeusrname(buf);
-    if (usrname.length < 2) {
-      setusrnameError("Username must be greater than two characters");
+    SetUsername(buf);
+    if (Username.length < 2) {
+      setError("Username must be greater than two characters");
     } else {
-      setusrnameError("");
+      setError("");
     }
   };
 
   const registerAccount = async () => {
-    if (pwdError !== "" || emailError !== "" || usrnameError !== "") {
-      console.log("ERROR REGISTERING!" + emailError + pwdError + usrnameError);
-      return;
-    }
+    if (error !== "") return;
   
     setLoading(true);
 
@@ -82,8 +77,8 @@ export default function HomeScreen() {
         },
         body: JSON.stringify({
           email: email,
-          username: usrname,
-          password: pwd,
+          username: Username,
+          password: password,
         }),
       });
   
@@ -120,19 +115,13 @@ export default function HomeScreen() {
           <Text style={styles.opt}>
             Already have an account? <Text style={styles.opt2} onPress={() => router.push('/(tabs)/login')}>Login</Text>
           </Text>
-          {usrnameError ? (
-            <Text style={styles.errorText}>{usrnameError}</Text>
-          ) : emailError ? (
-            <Text style={styles.errorText}>{emailError}</Text>
-          ) : pwdError ? (
-            <Text style={styles.errorText}>{pwdError}</Text>
-          ) : null}          
+          {error ? (<Text style={styles.errorText}>{error}</Text>) : <Text> </Text>}          
           <View style={styles.form}>
             <TitledInputBox
               title="Username"
               placeholder="eg. strongestofall"
-              value={usrname}
-              onChangeText={onchangeusrname}
+              value={Username}
+              onChangeText={SetUsername}
             />
             <TitledInputBox
               title="Email Adr."
@@ -145,7 +134,7 @@ export default function HomeScreen() {
               title="Password"
               placeholder="eg. 2312#@7712"
               secureTextEntry={true}
-              value={pwd}
+              value={password}
               onChangeText={handlePasswordChange}
             />
             
