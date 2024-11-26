@@ -245,7 +245,7 @@ function validateEmail(email) {
 }
 
 function validatePasswordStrength(password) {
-  const passwordStrengthRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+  const passwordStrengthRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^\w\s])[A-Za-z\d\W]{8,}$/;
   return passwordStrengthRegex.test(password);
 }
 
