@@ -11,7 +11,7 @@ import { API_URL }from 'react-native-dotenv';
 
 import GifLoading from '@/components/GifLoading';
 
-export default function HomeScreen() {
+export default function Register() {
   const router = useRouter();
 
   const [Username, SetUsername] = useState('');

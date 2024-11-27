@@ -101,7 +101,7 @@ export default function HomeScreen() {
         <Text style={styles.head}>Login to Your Account</Text>
         <View style={styles.inner}>
           <Text style={styles.opt}>
-            Dont have an acoount? <Text style={styles.opt2} onPress={() => router.push('/(tabs)/signup')}>Register</Text>
+            Dont have an acoount? <Text style={styles.opt2} onPress={() => router.push('/(tabs)/register')}>Register</Text>
           </Text>      
           { error ? (
             <Text style={styles.errorText}>{error}</Text>
