@@ -66,7 +66,7 @@ export default function Register() {
   
     setLoading(true);
 
-    const API = API_URL as string;
+    const API: string = API_URL;
     console.log(API)
     
     try {

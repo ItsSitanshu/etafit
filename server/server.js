@@ -291,20 +291,20 @@ app.get('/verify-email', async (req, res) => {
 });
 
 
-app.get('/api/protected', verifyToken, async (req, res) => {
-  const userId = req.user.userId;
+app.post('/api/fetch', verifyToken, async (req, res) => {
+  const { username } = req.body;
 
   const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('id', userId)
+    .eq('username', username)
     .single();
 
   if (error || !data) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: 'User not found', error});
   }
 
-  res.json(data);
+  res.status(200).json(data);
 });
 
 const server = app.listen(port, '0.0.0.0', () => {

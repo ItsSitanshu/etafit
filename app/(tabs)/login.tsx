@@ -11,16 +11,11 @@ import RoundEdgeButton from '@/components/RoundEdgeButton';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import GifLoading from '@/components/GifLoading';
 
-import Cookies from '@react-native-cookies/cookies';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL }from 'react-native-dotenv';
+import { API_URL } from 'react-native-dotenv';
 
 
-function SetTimeoutAsync(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export default function HomeScreen() {
+export default function Login() {
   const router = useRouter();
 
   const [Username, SetUsername] = useState<string>("");
@@ -49,8 +44,7 @@ export default function HomeScreen() {
     }
   
     setLoading(true);
-    const API = API_URL as string;
-    console.log(API);
+    const API: string = API_URL;
   
     try {
       const response = await fetch(`${API}/api/login`, {
@@ -58,7 +52,6 @@ export default function HomeScreen() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify({
           password: password,
           username: Username,
@@ -70,10 +63,12 @@ export default function HomeScreen() {
         const accessToken = responseData.accessToken;
   
         await AsyncStorage.setItem('accessToken', accessToken);
-        
-        router.push('/(tabs)/');
+        await AsyncStorage.setItem('curUser', Username);
+
+        router.push('/(tabs)/priv_profile');
       } else {
         const errorData = await response.json();
+        console.log(errorData);
         setError('Invalid credentials');
       }
     } catch (error) {

@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Colors } from '@/constants/Colors';
 import { vw, vh } from '@/constants/Window';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, Image, ScrollView, Text, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import RoundEdgeButton from '@/components/RoundEdgeButton';
 
 
 export default function HomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<null | any>(null);
-
-  // temp 
-  useEffect(() => {
-    router.push('/(tabs)/signup')
-  });
-
 
   return (
     <KeyboardAvoidingView
@@ -31,6 +26,7 @@ export default function HomeScreen() {
               style={styles.profileimg}
               resizeMode="cover"
             />
+            <RoundEdgeButton title='LOGIN' onPress={() => router.push('/(tabs)/login')}></RoundEdgeButton>
           </View>
         </View>
       </ScrollView>

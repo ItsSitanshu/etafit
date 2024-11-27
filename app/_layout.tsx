@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import TabLayout from './(tabs)/_layout';
 
 SplashScreen.preventAutoHideAsync();
 

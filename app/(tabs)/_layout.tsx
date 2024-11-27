@@ -21,6 +21,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: 'Index',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="register"
+        options={{
           title: 'Register',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
